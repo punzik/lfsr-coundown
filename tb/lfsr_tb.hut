@@ -1,0 +1,27 @@
+#!/usr/bin/env -S guile
+# -*- scheme -*- !#
+
+;; (add-to-load-path "/<huntest>/source")
+(import (prefix (huntest) hut::)
+        (prefix (huntest iverilog) iverilog::))
+
+(import (srfi srfi-1)
+        (ice-9 format))
+
+(hut::run
+ (hut::make-testbench
+  #:name "LFSR counter test"
+  #:tests
+  (list
+   (hut::make-test
+    #:name "test"
+    #:body
+    (iverilog::test-body-simple
+     #:sources '("../rtl/lfsr.sv" "lfsr_tb.sv")
+     #:top "lfsr_tb"
+     ;; optional arguments
+     #:compile-flags '("-g2012")
+     #:runtime-flags '("-fst")
+     ;; #:parameters `((WIDTH ,width)
+     ;;                (PIPE_ITEM_WIDTH ,pwidth))
+     )))))

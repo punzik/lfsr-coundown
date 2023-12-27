@@ -1,0 +1,19 @@
+#!/usr/bin/env -S guile
+# -*- scheme -*- !#
+
+;; (add-to-load-path "/<huntest>/source")
+(import (prefix (huntest) hut::)
+        (prefix (huntest iverilog) iverilog::))
+
+(hut::run
+ (hut::make-testbench
+  #:name "LFSR counter"
+  #:tests
+  (hut::make-test
+   #:name "mkcount"
+   #:body
+   (iverilog::test-body-simple
+    #:sources '("lfsr_cntr.sv")
+    #:include-paths '("../rtl")
+    #:top "lfsr_cntr"
+    #:compile-flags '("-g2012")))))

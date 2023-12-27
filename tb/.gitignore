@@ -1,0 +1,4 @@
+obj_dir
+lfsr_cntr.hut-*
+lfsr_countdown_tb.hut-*
+lfsr_tb.hut-*

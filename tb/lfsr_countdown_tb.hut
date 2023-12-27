@@ -1,0 +1,52 @@
+#!/usr/bin/env -S guile
+# -*- scheme -*- !#
+
+;; (add-to-load-path "/<huntest>/source")
+(import (prefix (huntest) hut::)
+        (prefix (huntest iverilog) iverilog::))
+
+(import (srfi srfi-1)
+        (ice-9 format))
+
+(hut::run
+ (map
+  (lambda (module)
+    (let ((test
+        (lambda (count-to)
+          (iverilog::test-body-simple
+           #:sources '("../rtl/lfsr.sv"
+                       "../rtl/countdown.sv"
+                       "../rtl/countdown_cry.sv"
+                       "../rtl/countdown_ref.sv"
+                       "lfsr_countdown_tb.sv")
+           #:include-paths '("../rtl")
+           #:top "lfsr_countdown_tb"
+           #:compile-flags '("-g2012")
+           #:runtime-flags '("-fst")
+           #:parameters `((COUNT ,count-to))
+           #:defines `((COUNTDOWN_MODULE ,module))))))
+      (hut::make-testbench
+       #:name (format #f "LFSR counter ~a" module)
+       #:tests
+       (cons
+        (hut::make-test
+         #:name "manual"
+         #:body
+         (lambda (plusargs base-path tb-path test-path)
+           (let ((count-to
+                  (let ((arg (find (lambda (s) (string-prefix? "+count=" s)) plusargs)))
+                    (if arg
+                        (string->number (substring arg 7))
+                        10))))
+             ((test count-to)
+              plusargs base-path tb-path test-path))))
+
+        (let ((rnd (seed->random-state (current-time))))
+          (map
+           (lambda (count-to)
+             (hut::make-test
+              #:name (format #f "rnd ~a" count-to)
+              #:body (test count-to)))
+           (map (lambda _ (random 5000 rnd))
+                (iota 20))))))))
+  '("countdown" "countdown_cry")))
